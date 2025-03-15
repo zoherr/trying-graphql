@@ -3,6 +3,8 @@ import { ApolloServer } from "@apollo/server";
 import bodyParser from "body-parser";
 import cors from "cors";
 import { expressMiddleware } from "@apollo/server/express4";
+import morgan from "morgan"
+import cookieParser from "cookie-parser";
 
 import { TODOS } from "./todo.js"
 import { USERS } from "./user.js"
@@ -10,37 +12,9 @@ import { USERS } from "./user.js"
 const startServer = async () => {
 
     const app = express();
+    app.use(morgan("dev"));
+    app.use(cookieParser());
 
-
-    //     typeDefs: `
-    //     type User {
-    //         id: ID!
-    //         name: String!
-    //         username: String!
-    //         email: String!
-    //         phone: String!
-    //         website: String!
-    //     }
-    //     type Todo {
-    //        id: ID!
-    //         title: String!
-    //         completed: Boolean
-    //     }
-    //     type Query {
-    //          getTodos: [Todo]
-    //          getSingleTodo(id: ID!): Todo
-    //          getUsers : [User]
-    //     }
-    //     `,
-
-    //     resolvers: {
-    //         Query: {
-    //             getTodos: () => TODOS,
-    //             getUsers: () => USERS,
-    //             getSingleTodo: async (parent, { id }) => TODOS.find((e) => e.id === id),
-    //         }
-    //     }
-    // });
     const server = new ApolloServer({
         typeDefs: `
             type User {
@@ -80,11 +54,15 @@ const startServer = async () => {
     });
 
     app.use(bodyParser.json());
-    app.use(cors());
+    app.use(cors({
+        origin: "http://localhost:3000",
+        credentials: true,
+    }));
 
     await server.start();
 
     app.use("/graphql", expressMiddleware(server));
+    app.use(express.json())
 
     app.listen(8080, () => console.log("Serevr Started at PORT 8080"));
 }
